@@ -1,6 +1,6 @@
-# Política de privacitat — Revisar membres de Telegram (pendent de publicar)
+# Política de privacitat — Revisar membres de Telegram
 
-**Responsable:** [afegir nom o entitat i contacte abans de publicar]
+**Responsable:** Daniel Díez Alonso (contact@danieldiez.eu)
 
 **Funció:** l'extensió compara identificadors de participants de dos grups de Telegram als quals pot accedir el compte autoritzat. Per fer-ho, es connecta directament als servidors de Telegram mitjançant MTProto; no envia dades al desenvolupador, a servidors propis ni a serveis de publicitat o anàlisi.
 
@@ -14,8 +14,16 @@
 
 **Limitacions:** l'accés a membres depèn de les regles i permisos de Telegram. Algunes absències són indeterminades i es mostren com «No verificable».
 
-**Política de dades:** les dades únicament es processen per proporcionar la funcionalitat indicada i no s'utilitzen per a publicitat, perfilat, venda de dades ni usos aliens a la comparació.
+**Política de dades i ús limitat (Limited Use):** l'ús de les dades per part d'aquesta extensió compleix la Chrome Web Store User Data Policy, incloent-hi els requisits de Limited Use.
 
-**Publicació:** aquest document és un esborrany; completar-lo amb el responsable, les jurisdiccions i el contacte aplicables, i publicar una URL accessible abans de la distribució al Chrome Web Store. Revisar que les afirmacions coincideixin amb la versió final i les obligacions legals aplicables.
+Les dades obtingudes de Telegram s'utilitzen exclusivament per oferir les funcionalitats descrites: comparar els membres dels grups seleccionats per l'usuari, gestionar l'autorització amb Telegram, conservar l'historial de comparacions i protegir les dades emmagatzemades.
+
+Les dades només es transmeten als servidors de Telegram quan és necessari per executar aquestes funcionalitats. No es transmeten al desenvolupador ni a serveis externs d'anàlisi o publicitat.
+
+El desenvolupador no té accés a les credencials, a les llistes de membres ni a l'historial de comparacions dels usuaris. Les dades no es venen, no s'utilitzen per a publicitat personalitzada ni es comparteixen amb tercers per a finalitats comercials.
+
+Aquestes limitacions s'apliquen tant a les dades originals com a les dades derivades de les comparacions.
+
+**Publicació:** 13 d'Octubre de 2026
 
 **Llicència del programa:** GPL-3.0-or-later, amb codi font públic i avisos de dependències. Això és independent de la política de tractament de dades.
