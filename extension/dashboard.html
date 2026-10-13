@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ca"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Revisar membres · Telegram</title><link rel="stylesheet" href="dashboard.css"></head>
+<body><main>
+<header><div><h1>Revisar membres</h1><p>Compara els membres de dos grups mitjançant l’API de Telegram (MTProto).</p></div><button id="history" class="ghost">Historial</button></header>
+<div id="status" role="status" aria-live="polite"></div>
+<section id="pin-setup" class="card" hidden>
+  <h2>Protegeix les dades amb un PIN</h2>
+  <p>Tria un PIN de 4 dígits. Xifrarem la sessió de Telegram i l’historial. Si ja tenies dades, es migraran després de confirmar el PIN.</p>
+  <p class="note"><strong>Seguretat limitada:</strong> un PIN de 4 dígits no resisteix un atac exhaustiu contra una còpia de les dades. No el reutilitzis per a altres serveis.</p>
+  <form id="pin-setup-form">
+    <label>PIN nou<input id="pin-new" type="password" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="new-password" required></label>
+    <label>Repeteix el PIN<input id="pin-confirm" type="password" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="new-password" required></label>
+    <button id="pin-setup-submit" type="submit">Desa el PIN i continua</button>
+  </form>
+</section>
+<section id="pin-unlock" class="card" hidden>
+  <h2>Desbloqueja l'extensió</h2>
+  <form id="pin-unlock-form">
+    <label>PIN de 4 dígits<input id="pin-unlock-input" type="password" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="current-password" required></label>
+    <button type="submit" id="pin-unlock-submit">Desbloqueja</button>
+  </form>
+  <p class="note">El PIN es torna a demanar quan obres una finestra nova del comparador.</p>
+  <button id="pin-reset" class="ghost danger" type="button">He oblidat el PIN: restableix les dades</button>
+</section>
+<section id="auth" class="card" hidden>
+  <h2>Connecta el teu compte de Telegram</h2>
+  <p>Una sola autorització. Aquesta extensió manté una sessió independent de Telegram Web.</p>
+  <form id="credentials">
+    <div class="grid"><label>API ID<input id="api-id" type="number" inputmode="numeric" min="1" required placeholder="Ex.: 12345678"></label>
+    <label>API hash<input id="api-hash" type="password" autocomplete="off" required placeholder="Codi de my.telegram.org"></label></div>
+    <p class="note">Obtén aquestes credencials a <a href="https://my.telegram.org/apps" target="_blank" rel="noopener noreferrer">my.telegram.org/apps</a>. No les publiquis ni les comparteixis.</p>
+	<p class="note">Si encara no tens cap aplicació creada, omple el formulari amb qualsevol nom, deixant el camp URL en blanc i triant la plataforma "Desktop".
+	Si el formulari falla, revisa els valors i torna-ho a provar.</p>
+    <button type="submit" id="connect">Autoritza amb codi QR</button>
+  </form>
+  <div id="qr-region" hidden>
+    <h3>Escaneja el codi QR amb Telegram al mòbil</h3>
+    <p>Obre <strong>Configuració → Dispositius → Vincula un dispositiu</strong> al telèfon que tingui la sessió oberta.</p>
+    <img id="qr-image" alt="Codi QR d’autorització de Telegram" width="230" height="230">
+    <p class="note">El codi es renova automàticament quan caduca. Si tens verificació en dos passos, se’t demanarà la contrasenya.</p>
+    <button class="ghost" id="cancel-auth" type="button">Cancel·la</button>
+  </div>
+</section>
+<section id="comparison" hidden>
+  <div class="accountline"><span id="account"></span><div><button type="button" id="refresh" class="ghost">Actualitza els grups</button><button type="button" id="disconnect" class="ghost danger">Tanca la sessió</button></div></div>
+  <div class="card"><h2>Compara els grups</h2>
+    <p id="starting-group" class="note"></p>
+    <label>Grup d’origen (grup 1)<select id="source"><option value="">Tria un grup…</option></select></label>
+    <label>Tria el grup on vols comprovar la pertinença dels membres<select id="target"><option value="">Tria un grup…</option></select></label>
+    <button id="run" disabled>Compara membres</button>
+    <p class="note">Es llegeixen els membres dels grups accessibles per aquest compte. No cal obrir ni desplaçar les llistes de Telegram Web.</p>
+  </div>
+  <section id="result" class="card" hidden>
+    <h2 id="result-title">Resultat</h2><p id="result-summary"></p>
+    <p id="result-warning"></p>
+    <p id="result-saved" class="note"></p>
+    <div class="table-wrap"><table><thead><tr><th>Nom</th><th>ID de Telegram</th><th>Bot</th><th>Comprovació</th></tr></thead><tbody id="result-members"></tbody></table></div>
+  </section>
+</section>
+<footer>La sessió i l’historial es desen xifrats localment. Un PIN de 4 dígits ofereix una protecció limitada. <a href="LICENSE" target="_blank" rel="noopener noreferrer">GPLv3</a> · <a href="THIRD_PARTY_NOTICES.md" target="_blank" rel="noopener noreferrer">Avisos de tercers</a></footer>
+</main><script src="vault.js"></script><script src="dashboard.js"></script></body></html>

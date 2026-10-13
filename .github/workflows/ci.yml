@@ -1,0 +1,24 @@
+name: Tests and build
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  test-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+      - name: Verify release metadata
+        run: |
+          node -e "const m=require('./dist/manifest.json'); const p=require('./package.json'); if(m.version!==p.version) process.exit(1)"
+          test -f dist/LICENSE
+          test -f dist/THIRD_PARTY_NOTICES.md
+          test -f dist/third-party-licenses/INDEX.json

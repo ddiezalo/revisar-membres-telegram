@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="ca"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Historial · Revisar membres</title><link rel="stylesheet" href="options.css"></head>
+<body>
+<main>
+  <header><div><h1>Historial de comprovacions</h1><p>Els registres es desen només en aquest navegador, a l'emmagatzematge local de l'extensió.</p></div></header>
+  <section id="history-unlock" class="controls" hidden>
+    <form id="history-unlock-form">
+      <label>PIN de 4 dígits per consultar l’historial
+        <input id="history-pin" type="password" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="current-password" required>
+      </label>
+      <button type="submit">Desbloqueja l’historial</button>
+    </form>
+    <button type="button" id="history-reset" class="danger">He oblidat el PIN: restableix</button>
+  </section>
+  <section id="history-no-vault" class="controls" hidden>
+    <p>Configura primer el PIN des del comparador.</p>
+    <button type="button" id="history-open-dashboard">Obre el comparador</button>
+  </section>
+  <div id="history-content" hidden>
+    <section class="controls" aria-label="PIN">
+      <form id="pin-change-form">
+        <label>PIN actual<input id="pin-old" type="password" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="current-password" required></label>
+        <label>PIN nou<input id="pin-next" type="password" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="new-password" required></label>
+        <label>Confirma el PIN nou<input id="pin-next-confirm" type="password" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="new-password" required></label>
+        <button type="submit">Canvia el PIN</button>
+      </form>
+    </section>
+  <section class="controls" aria-label="Historial">
+    <label for="history-select">Comprovació desada</label>
+    <select id="history-select"><option value="">Tria una comprovació…</option></select>
+    <button type="button" id="delete-one" disabled>Esborra aquesta comprovació</button>
+    <button type="button" id="delete-all" class="danger">Esborra tot l'historial</button>
+  </section>
+  <p id="message" role="status"></p>
+  <section id="report" hidden>
+    <h2 id="report-title"></h2>
+    <p id="report-date" class="muted"></p>
+    <div id="summary" class="summary"></div>
+    <p id="warning"></p>
+    <div class="tools">
+      <h3 id="members-heading">Membres no trobats</h3>
+      <button type="button" id="export-csv">Exporta CSV</button>
+    </div>
+    <table><thead><tr><th>Nom</th><th>ID de Telegram</th><th>Bot</th><th>Estat</th></tr></thead><tbody id="members-body"></tbody></table>
+  </section>
+  </div>
+<footer style="margin:20px 0;text-align:center"><a href="LICENSE" target="_blank" rel="noopener noreferrer">Llicència GPLv3</a> · <a href="THIRD_PARTY_NOTICES.md" target="_blank" rel="noopener noreferrer">Dependències</a></footer>
+</main><script src="vault.js"></script><script src="options.js"></script>
+</body></html>
