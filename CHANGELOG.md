@@ -1,6 +1,6 @@
 # Historial de canvis
 
-## 0.3.4 — Comparacions temporals i desbloqueig per sessió
+## 0.3.5 — Comparacions temporals i desbloqueig per sessió
 
 - Elimina l’historial de consultes. Els resultats només viuen en memòria mentre la finestra és oberta.
 - Manté un botó d’exportació CSV opcional a la finestra del comparador.

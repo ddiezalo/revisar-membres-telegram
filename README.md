@@ -1,4 +1,4 @@
-# Revisar membres de Telegram — v0.3.4
+# Revisar membres de Telegram — v0.3.5
 
 Extensió **Chrome / Edge (Manifest V3)**, amb interfície en català, que compara dos grups de Telegram mitjançant GramJS / MTProto. Mostra els membres del grup 1 que no consten al grup 2 i diferencia entre absència confirmada, absència segons la llista i casos no verificables.
 
