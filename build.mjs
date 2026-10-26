@@ -1,4 +1,4 @@
-import {readdir, copyFile, rm, mkdir} from 'node:fs/promises';
+import {readdir, copyFile, rm, mkdir, stat} from 'node:fs/promises';
 import {execFileSync} from 'node:child_process';
 import {fileURLToPath} from 'node:url';
 import path from 'node:path';
@@ -13,9 +13,13 @@ async function copyTree(source, destination) {
   for (const entry of await readdir(source, {withFileTypes: true})) {
     const from = path.join(source, entry.name);
     const to = path.join(destination, entry.name);
-    if (entry.isDirectory()) {
+    // Resolve special Windows/OneDrive directory entries.
+    const info = entry.isDirectory() || entry.isFile()
+      ? entry
+      : await stat(from);
+    if (info.isDirectory()) {
       await copyTree(from, to);
-    } else if (entry.isFile()) {
+    } else if (info.isFile()) {
       await copyFile(from, to);
     } else {
       throw new Error(`Tipus de fitxer no admès: ${from}`);
