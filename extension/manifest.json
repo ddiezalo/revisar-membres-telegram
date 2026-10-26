@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Revisar membres de Telegram",
   "short_name": "Revisar membres",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "Compara membres de grups de Telegram mitjançant MTProto i desa els resultats localment.",
   "permissions": [
     "storage"

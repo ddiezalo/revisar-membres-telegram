@@ -2,11 +2,11 @@
 <html lang="ca"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Revisar membres · Telegram</title><link rel="stylesheet" href="dashboard.css"></head>
 <body><main>
-<header><div><h1>Revisar membres</h1><p>Compara els membres de dos grups mitjançant l’API de Telegram (MTProto).</p></div><button id="history" class="ghost">Historial</button></header>
+<header><div><h1>Revisar membres</h1><p>Compara els membres de dos grups mitjançant l’API de Telegram (MTProto).</p></div><button id="settings" class="ghost">Configuració del PIN</button></header>
 <div id="status" role="status" aria-live="polite"></div>
 <section id="pin-setup" class="card" hidden>
   <h2>Protegeix les dades amb un PIN</h2>
-  <p>Tria un PIN de 4 dígits. Xifrarem la sessió de Telegram i l’historial. Si ja tenies dades, es migraran després de confirmar el PIN.</p>
+  <p>Tria un PIN de 4 dígits. Xifrarem les credencials de Telegram. Si tenies un historial anterior, s’eliminarà en desbloquejar la nova versió.</p>
   <p class="note"><strong>Seguretat limitada:</strong> un PIN de 4 dígits no resisteix un atac exhaustiu contra una còpia de les dades. No el reutilitzis per a altres serveis.</p>
   <form id="pin-setup-form">
     <label>PIN nou<input id="pin-new" type="password" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="new-password" required></label>
@@ -20,7 +20,7 @@
     <label>PIN de 4 dígits<input id="pin-unlock-input" type="password" inputmode="numeric" pattern="[0-9]{4}" minlength="4" maxlength="4" autocomplete="current-password" required></label>
     <button type="submit" id="pin-unlock-submit">Desbloqueja</button>
   </form>
-  <p class="note">El PIN es torna a demanar quan obres una finestra nova del comparador.</p>
+  <p class="note">El PIN es demana una vegada per sessió de Chrome (i després de recarregar o actualitzar l’extensió). <strong>En actualitzar des de la v0.3.3, el primer desbloqueig esborrarà definitivament l’historial antic, però conservarà la sessió de Telegram.</strong></p>
   <button id="pin-reset" class="ghost danger" type="button">He oblidat el PIN: restableix les dades</button>
 </section>
 <section id="auth" class="card" hidden>
@@ -55,8 +55,9 @@
     <h2 id="result-title">Resultat</h2><p id="result-summary"></p>
     <p id="result-warning"></p>
     <p id="result-saved" class="note"></p>
-    <div class="table-wrap"><table><thead><tr><th>Nom</th><th>ID de Telegram</th><th>Bot</th><th>Comprovació</th></tr></thead><tbody id="result-members"></tbody></table></div>
+    <button type="button" id="export-csv" class="ghost" disabled>Exporta CSV</button>
+    <div class="table-wrap"><table><thead><tr><th>Nom</th><th>Usuari</th><th>ID de Telegram</th><th>Rol</th><th>Comprovació</th></tr></thead><tbody id="result-members"></tbody></table></div>
   </section>
 </section>
-<footer>La sessió i l’historial es desen xifrats localment. Un PIN de 4 dígits ofereix una protecció limitada. <a href="LICENSE" target="_blank" rel="noopener noreferrer">GPLv3</a> · <a href="THIRD_PARTY_NOTICES.md" target="_blank" rel="noopener noreferrer">Avisos de tercers</a></footer>
+<footer>Les credencials de Telegram es desen xifrades. Els resultats només es mantenen mentre aquesta finestra és oberta; els CSV exportats no estan xifrats. Un PIN de 4 dígits ofereix una protecció limitada. <a href="LICENSE" target="_blank" rel="noopener noreferrer">GPLv3</a> · <a href="THIRD_PARTY_NOTICES.md" target="_blank" rel="noopener noreferrer">Avisos de tercers</a></footer>
 </main><script src="vault.js"></script><script src="dashboard.js"></script></body></html>

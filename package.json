@@ -1,7 +1,7 @@
 {
   "name": "telegram-revisar-membres-mtproto",
   "private": true,
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "Extensió MV3 de comparació de membres via Telegram MTProto",
   "scripts": {
     "build": "node build.mjs",

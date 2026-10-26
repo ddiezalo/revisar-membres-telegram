@@ -1,6 +1,7 @@
 'use strict';
-// Keep the MTProto session and history inaccessible to Telegram Web content scripts.
+// Keep persistent MTProto credentials and the ephemeral unlock key inaccessible to Telegram Web content scripts.
 chrome.storage.local.setAccessLevel({accessLevel: 'TRUSTED_CONTEXTS'}).catch(console.warn);
+chrome.storage.session.setAccessLevel({accessLevel: 'TRUSTED_CONTEXTS'}).catch(console.warn);
 
 const AUTH_KEY = 'mtprotoAuth';
 const VAULT_KEY = 'secureVault';

@@ -2,28 +2,24 @@
 
 **Responsable:** Daniel Díez Alonso (contact@danieldiez.eu)
 
-**Funció:** l'extensió compara identificadors de participants de dos grups de Telegram als quals pot accedir el compte autoritzat. Per fer-ho, es connecta directament als servidors de Telegram mitjançant MTProto; no envia dades al desenvolupador, a servidors propis ni a serveis de publicitat o anàlisi.
+**Actualitzada:** 16 d'octubre de 2026. Aquesta versió descriu el comportament de l'extensió **v0.3.4**. La v0.3.3 i anteriors encara guardaven un historial local xifrat.
 
-**Dades utilitzades:** identificadors i noms de grups, identificadors i noms dels seus participants, indicador de bot, credencials API introduïdes per la persona usuària i la clau de sessió MTProto generada després de l'autorització. Les consultes individuals a Telegram poden permetre confirmar pertinences no visibles al llistat general.
+**Finalitat:** l'extensió compara identificadors de participants de dos grups de Telegram seleccionats per la persona usuària. Es connecta directament als servidors de Telegram via MTProto. No envia dades al desenvolupador, als seus servidors ni a eines de publicitat o analítica.
 
-**Conservació:** la sessió MTProto (`StringSession`), l'`api_hash` i l'historial de comparacions (incloent-hi noms, identificadors i estats de verificació) es desen localment a `chrome.storage.local`, dins d'un registre xifrat amb AES-256-GCM. La clau deriva d'un PIN de quatre dígits amb PBKDF2-SHA-256 i una sal aleatòria, i no es guarda permanentment. Un PIN de quatre dígits proporciona una **protecció limitada** i es pot provar exhaustivament si un atacant obté una còpia del registre xifrat. La migració elimina les claus antigues de text pla, sense garantir la desaparició de còpies prèvies del disc. No s'aplica un termini d'esborrat automàtic. L'historial es pot esborrar individualment o sencer a les Opcions, després del desbloqueig.
+**Dades utilitzades:** identificadors i noms dels grups, noms, identificadors, noms d'usuari i rols dels participants accessibles (administrador o bot, si Telegram ho revela), a més de les credencials de l'aplicació (`api_id`, `api_hash`) i la sessió MTProto. La comparació inclou eventuals consultes individuals per verificar la pertinença al segon grup.
 
-**Comunicacions:** les consultes es trameten als servidors de Telegram mitjançant la connexió xifrada pròpia de MTProto. No s'utilitzen cookies de Telegram Web per autoritzar l'extensió, ni es venen o comparteixen les dades amb anunciants.
+**Resultats i conservació:** la v0.3.4 **no desa cap historial**, llista de membres ni resultat de comparació. Aquestes dades es mantenen en la memòria de la finestra mentre es consulta la comparació i es descarten al tancar-la. En migrar d'una versió anterior, després d'introduir correctament el PIN, el registre xifrat es reescriu sense l'historial antic; no es pot assegurar la desaparició de còpies de seguretat anteriors del disc. Els CSV descarregats voluntàriament per l'usuari **no estan xifrats** i romanen al seu dispositiu fins que els esborri.
 
-**Control:** després de desbloquejar, «Tanca la sessió» esborra les credencials del registre xifrat i intenta revocar la sessió a Telegram. Si falla la revocació, la persona usuària la pot completar a Configuració → Dispositius. L'eliminació de l'extensió esborra el seu emmagatzematge local al perfil del navegador. Les exportacions CSV **no** estan xifrades i queden sota el control de qui les descarrega. El PIN es pot canviar des de l'Historial; si s'oblida, el restabliment esborra irreversiblement la sessió i l'historial local i no revoca per si mateix la sessió remota de Telegram.
+**Credencials persistents:** per evitar repetir l'autorització QR, es conserva localment l'API ID, l'API hash i la `StringSession` xifrats amb AES-256-GCM a `chrome.storage.local`. La clau de xifrat es deriva d'un PIN de quatre dígits amb PBKDF2-SHA-256 i una sal aleatòria. El PIN no es desa. Un PIN de quatre dígits té només 10.000 combinacions i, per tant, **no protegeix adequadament contra un atac fora de línia amb una còpia de les dades xifrades**.
 
-**Limitacions:** l'accés a membres depèn de les regles i permisos de Telegram. Algunes absències són indeterminades i es mostren com «No verificable».
+**Desbloqueig durant la sessió del navegador:** després d'introduir el PIN es conserva temporalment, només a `chrome.storage.session`, el material criptogràfic necessari per tornar a desbloquejar les credencials en altres finestres de l'extensió. Aquest emmagatzematge és en memòria, està limitat a contextos de confiança de l'extensió i es neteja en reiniciar Chrome o recarregar, actualitzar o desactivar l'extensió. No conté identificadors de participants ni resultats.
 
-**Política de dades i ús limitat (Limited Use):** l'ús de les dades per part d'aquesta extensió compleix la Chrome Web Store User Data Policy, incloent-hi els requisits de Limited Use.
+**Comunicacions:** les dades consultades es transmeten als servidors de Telegram segons el funcionament del protocol MTProto. L'extensió no consulta missatges privats ni l'historial de navegació, i no comparteix la informació amb anunciants.
 
-Les dades obtingudes de Telegram s'utilitzen exclusivament per oferir les funcionalitats descrites: comparar els membres dels grups seleccionats per l'usuari, gestionar l'autorització amb Telegram, conservar l'historial de comparacions i protegir les dades emmagatzemades.
+**Control:** l'usuari pot tancar la sessió MTProto de l'extensió, intentar revocar-la a Telegram i eliminar les credencials locals. Si la revocació remota falla, es pot efectuar a Telegram → Configuració → Dispositius. Si s'oblida el PIN, restablir l'extensió elimina les credencials locals i requereix una nova autorització QR; el restabliment per si mateix no revoca la sessió remota. Desinstal·lar l'extensió elimina l'emmagatzematge associat al seu identificador.
 
-Les dades només es transmeten als servidors de Telegram quan és necessari per executar aquestes funcionalitats. No es transmeten al desenvolupador ni a serveis externs d'anàlisi o publicitat.
+**Limitacions:** els permisos i les restriccions de Telegram poden impedir conèixer tots els membres o confirmar algunes absències. El programa diferencia les comprovacions parcials i les no verificables.
 
-El desenvolupador no té accés a les credencials, a les llistes de membres ni a l'historial de comparacions dels usuaris. Les dades no es venen, no s'utilitzen per a publicitat personalitzada ni es comparteixen amb tercers per a finalitats comercials.
+**Política de dades i ús limitat (Limited Use):** les dades es tracten exclusivament per autoritzar el compte, comparar membres, mostrar els resultats i produir exportacions sol·licitades per l'usuari, d'acord amb la Chrome Web Store User Data Policy. No es transfereixen al desenvolupador ni s'utilitzen per a publicitat, venda de dades, perfilat comercial, decisions creditícies o altres finalitats no relacionades amb la funcionalitat descrita. Aquest límit s'aplica tant a les dades originals com a les derivades.
 
-Aquestes limitacions s'apliquen tant a les dades originals com a les dades derivades de les comparacions.
-
-**Publicació:** 13 d'Octubre de 2026
-
-**Llicència del programa:** GPL-3.0-or-later, amb codi font públic i avisos de dependències. Això és independent de la política de tractament de dades.
+**Llicència:** el programa es distribueix sota GPL-3.0-or-later, independentment de la política de dades.

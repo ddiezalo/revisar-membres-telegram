@@ -2,7 +2,7 @@
 import { TelegramClient, Api } from 'telegram';
 import { StringSession } from 'telegram/sessions';
 import QRCode from 'qrcode';
-const { groupSnapshot, reconcile, participantState, idString } = require('./membership.cjs');
+const { groupSnapshot, reconcile, participantState, idString, csvSafe } = require('./membership.cjs');
 const { currentRestrictedUsers } = require('./restricted.cjs');
 const { errorCategory, shouldStopChecking } = require('./verification.cjs');
 
@@ -11,13 +11,15 @@ const LIMIT_DIALOGS = 1500;
 const LIMIT_PARTICIPANTS = 10000;
 const MAX_INDIVIDUAL_CHECKS = 40;
 const INDIVIDUAL_CHECK_DELAY_MS = 250;
-const vault = window.TmcVault.createStore(chrome.storage.local);
+const vault = window.TmcVault.createStore(chrome.storage.local, chrome.storage.session);
 const params = new URLSearchParams(location.search);
 const fromWeb = /^-\d{1,25}$/.test(params.get('source') || '') ? params.get('source') : '';
 const fromWebName = (params.get('name') || '').slice(0,120);
 let client = null;
 let dialogs = [];
 let busy = false;
+// Només memòria de la finestra; no es desa cap identificador ni resultat.
+let currentResult = null;
 
 function status(message, type='') {
   $('status').textContent = message;
@@ -44,8 +46,7 @@ function putOptions(el, selected) {
 function ready() {
   $('run').disabled = busy || !$('source').value || !$('target').value || $('source').value === $('target').value;
 }
-async function openHistory() { await chrome.runtime.openOptionsPage(); }
-$('history').addEventListener('click', openHistory);
+$('settings').addEventListener('click', () => chrome.runtime.openOptionsPage());
 $('source').addEventListener('change', ready);
 $('target').addEventListener('change', ready);
 
@@ -99,7 +100,7 @@ function setBusy(value) {
   ready();
 }
 
-// La clau de desxifrat només viu a la memòria d'aquesta finestra.
+// El desbloqueig es comparteix entre finestres durant la sessió de Chrome.
 async function continueAfterPin() {
   $('pin-setup').hidden = true;
   $('pin-unlock').hidden = true;
@@ -163,8 +164,8 @@ $('pin-unlock-form').addEventListener('submit', async event => {
 });
 
 $('pin-reset').addEventListener('click', async () => {
-  if (!confirm('Aquest restabliment esborrarà DEFINITIVAMENT la sessió xifrada i TOT l’historial. Vols continuar?')) return;
-  if (!confirm('Última confirmació: no es podrà recuperar cap dada. Hauràs de tornar a autoritzar Telegram i revocar manualment la sessió antiga a Configuració → Dispositius. Restablir?')) return;
+  if (!confirm('Aquest restabliment esborrarà DEFINITIVAMENT les credencials xifrades de Telegram. Vols continuar?')) return;
+  if (!confirm('Última confirmació: hauràs de tornar a autoritzar Telegram i revocar manualment la sessió antiga a Configuració → Dispositius. Restablir?')) return;
   try { await vault.reset(); location.reload(); }
   catch (error) { status(`No s’ha pogut restablir: ${safeError(error)}`, 'error'); }
 });
@@ -214,7 +215,7 @@ $('credentials').addEventListener('submit', async event => {
 $('cancel-auth').addEventListener('click',()=>location.reload());
 $('refresh').addEventListener('click',reloadDialogs);
 $('disconnect').addEventListener('click',async () => {
-  if (busy || !confirm('Vols tancar la sessió MTProto de l’extensió? L’historial es conservarà.')) return;
+  if (busy || !confirm('Vols tancar la sessió MTProto de l’extensió?')) return;
   setBusy(true);
   let logoutError = '';
   try {if (client) await client.logOut();}
@@ -286,7 +287,10 @@ async function readGroup(group) {
           channel: entity, participant: new Api.InputPeerSelf()
         }));
         const state = participantState(response.participant);
-        if (state === 'present') all.set(idString(me.id), me);
+        if (state === 'present') {
+          me.participant = response.participant;
+          all.set(idString(me.id), me);
+        }
         else if (state === 'unknown') selfVerificationFailed = true;
       } catch (error) {
         if (isFloodWait(error)) throw error;
@@ -303,7 +307,10 @@ async function readGroup(group) {
     if (expected === null || all.size < expected) {
       try {
         const restricted = await fetchRestrictedMembers(entity);
-        for (const user of restricted.users) all.set(idString(user.id), user);
+        for (const user of restricted.users) {
+          const id = idString(user.id);
+          if (!all.has(id)) all.set(id, user);
+        }
         extraTruncated = restricted.truncated;
       } catch (error) {
         if (isFloodWait(error)) throw error;
@@ -402,25 +409,53 @@ function showResult(record) {
     $('result-warning').textContent += ` Verificacions no resoltes (${detail}).`;
   }
 
-  $('result-saved').textContent = `Comprovació desada a l’historial: ${new Intl.DateTimeFormat('ca-ES',{dateStyle:'medium',timeStyle:'short'}).format(new Date(record.date))}.`;
+  $('result-saved').textContent = 'Resultat temporal: es descartarà quan tanquis aquesta finestra. Si el vols conservar, exporta’l en CSV.';
   $('result-members').replaceChildren();
   for (const person of record.notFound) {
     const tr = document.createElement('tr');
     const label = person.verification === 'absent' ? 'Absència confirmada'
       : person.verification === 'enumerated' ? 'No trobat segons la llista'
       : 'No verificable';
-    for (const value of [person.name, person.id, person.bot ? 'Sí' : 'No', label]) {
+    for (const value of [person.name, person.username ? `@${person.username}` : '', person.id, person.role || '', label]) {
       const td = document.createElement('td'); td.textContent = String(value); tr.appendChild(td);
     }
     $('result-members').appendChild(tr);
   }
 }
+
+// L'exportació és voluntària i crea un fitxer CSV NO xifrat al disc de l'usuari.
+$('export-csv').addEventListener('click', () => {
+  if (!currentResult) return;
+  const record = currentResult;
+  const quote = value => `"${csvSafe(value).replace(/"/g, '""')}"`;
+  const lines = [
+    ['Nom','Usuari','ID de Telegram','Rol','Comprovació','Grup 1','Grup 2','Data'],
+    ...record.notFound.map(person => [
+      person.name, person.username ? `@${person.username}` : '', person.id,
+      person.role || '', person.verification === 'absent' ? 'Absència confirmada' :
+        person.verification === 'enumerated' ? 'No trobat segons la llista' : 'No verificable',
+      record.source.name, record.target.name, record.date
+    ])
+  ];
+  const csv = '\uFEFF' + lines.map(row => row.map(quote).join(';')).join('\r\n');
+  const url = URL.createObjectURL(new Blob([csv], {type: 'text/csv;charset=utf-8'}));
+  const anchor = document.createElement('a');
+  anchor.href = url;
+  anchor.download = `comparacio-${record.date.slice(0,10)}.csv`;
+  document.body.appendChild(anchor);
+  anchor.click();
+  anchor.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 2500);
+});
+
 $('run').addEventListener('click',async () => {
   const source = dialogs.find(g=>g.id === $('source').value);
   const target = dialogs.find(g=>g.id === $('target').value);
   if (!source || !target || source.id === target.id || busy) return;
   setBusy(true);
   $('result').hidden = true;
+  currentResult = null;
+  $('export-csv').disabled = true;
   try {
     status(`Consultant membres de «${source.name}»…`);
     const first = await readGroup(source);
@@ -434,28 +469,28 @@ $('run').addEventListener('click',async () => {
       source:strip(first),target:strip(second),...outcome,
       verificationAttempted: attempts, verificationErrors: errors, verificationBlocked: blocked
     };
-    await vault.update(data => ({
-      ...data,
-      history: [record, ...data.history]
-    }));
+    currentResult = record;
     showResult(record);
+    $('export-csv').disabled = false;
     status(`Comprovació finalitzada: ${outcome.confirmedAbsent} absències confirmades, ${outcome.enumeratedAbsent} no trobats segons la llista i ${outcome.unverified} casos no verificables.`, 'good');
   } catch(err) {
-    status(`No s’ha completat la comparació: ${safeError(err)}. No s’ha desat cap resultat parcial.`, 'error');
+    status(`No s’ha completat la comparació: ${safeError(err)}. No s’ha conservat cap resultat parcial.`, 'error');
   } finally {setBusy(false);}
 });
 
 (async function init() {
-  status('Preparant les dades protegides…');
+  status('Preparant les credencials protegides…');
   try {
-    if (await vault.isSetup()) {
+    if (await vault.resume()) {
+      await continueAfterPin();
+    } else if (await vault.isSetup()) {
       $('pin-unlock').hidden = false;
       $('pin-unlock-input').focus();
       status('Introdueix el PIN per desbloquejar l’extensió.');
     } else {
       $('pin-setup').hidden = false;
       $('pin-new').focus();
-      status('Crea un PIN de 4 dígits per protegir les dades locals.');
+      status('Crea un PIN de 4 dígits per protegir les credencials de Telegram.');
     }
   } catch (error) {
     status(`No s’ha pogut llegir l’emmagatzematge: ${safeError(error)}`, 'error');

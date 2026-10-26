@@ -2,11 +2,24 @@
 
 function idString(value) { return value == null ? '' : String(value); }
 
+// Rol recuperat de l'objecte Participant retornat per GramJS; no s'infereix
+// a partir del nom, ni de la condició d'administrador del mateix usuari en altres grups.
+function roleFromUser(user) {
+  const participant = user?.participant;
+  const type = participant?.className || participant?.constructor?.name || '';
+  const admin = ['ChannelParticipantAdmin','ChannelParticipantCreator',
+    'ChatParticipantAdmin','ChatParticipantCreator'].includes(type);
+  const bot = user?.bot === true;
+  if (admin && bot) return 'Admin · Bot';
+  if (admin) return 'Admin';
+  if (bot) return 'Bot';
+  return '';
+}
 function personFromUser(user) {
   const id = idString(user?.id);
   const name = [user?.firstName, user?.lastName].filter(Boolean).join(' ').trim()
     || user?.username || `Usuari ${id}`;
-  return {id, name, bot: Boolean(user?.bot)};
+  return {id, name, username: String(user?.username || '').replace(/^@/, ''), role: roleFromUser(user)};
 }
 
 function groupSnapshot(users, advertisedCount, opts = {}) {
@@ -83,4 +96,4 @@ function csvSafe(value) {
   return /^[\s\u0000-\u001f]*[=+\-@\t\r]/.test(content) ? "'" + content : content;
 }
 
-module.exports = {idString, personFromUser, groupSnapshot, participantState, compare, reconcile, csvSafe};
+module.exports = {idString, personFromUser, roleFromUser, groupSnapshot, participantState, compare, reconcile, csvSafe};

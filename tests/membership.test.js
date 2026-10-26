@@ -1,7 +1,7 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const {groupSnapshot, participantState, reconcile, compare, csvSafe} = require('../src/membership.cjs');
+const {groupSnapshot, participantState, reconcile, compare, csvSafe, roleFromUser, personFromUser} = require('../src/membership.cjs');
 const {currentRestrictedUsers} = require('../src/restricted.cjs');
 const {errorCategory, shouldStopChecking} = require('../src/verification.cjs');
 const u = (id, name = id, bot = false) => ({id, firstName:name, bot});
@@ -10,7 +10,7 @@ const snapshot = (users,count) => groupSnapshot(users,count,{finished:true});
 test('deduplica IDs grans i conserva bots', () => {
   const result = snapshot([u('900719925474099313','A'),u('900719925474099313','A'),u('2','Bot',true)],2);
   assert.equal(result.membersFound,2);
-  assert.equal(result.members[1].bot,true);
+  assert.equal(result.members[1].role,'Bot');
   assert.equal(result.complete,true);
 });
 test('interpreta Banned left=false com a membre restringit', () => {
@@ -90,4 +90,27 @@ test('els errors sense permisos no són prova de no pertinença', () => {
   assert.equal(errorCategory({errorMessage:'USER_NOT_PARTICIPANT'}),'USER_NOT_PARTICIPANT');
   assert.equal(shouldStopChecking('CHAT_ADMIN_REQUIRED'),true);
   assert.equal(shouldStopChecking('USER_NOT_PARTICIPANT'),false);
+});
+
+test('conserva @usuari, deixa en blanc si no existeix, i diferencia noms duplicats', () => {
+  const members=snapshot([
+    {id:'111',firstName:'Alex',username:'alex_a',participant:{className:'ChannelParticipant'}},
+    {id:'222',firstName:'Alex',username:'alex_b',participant:{className:'ChannelParticipant'}},
+    {id:'333',firstName:'Alex',participant:{className:'ChannelParticipant'}}
+  ],3);
+  assert.deepEqual(members.members.map(m=>m.username),['alex_a','alex_b','']);
+  assert.deepEqual(members.members.map(m=>m.role),['','','']);
+  assert.equal(reconcile(members,snapshot([],0)).notFound.length,3);
+});
+
+test('identifica administradors, creadors i bots segons el participant del grup', () => {
+  for (const type of ['ChannelParticipantAdmin','ChannelParticipantCreator',
+    'ChatParticipantAdmin','ChatParticipantCreator']) {
+    assert.equal(roleFromUser({participant:{className:type}}),'Admin');
+    assert.equal(roleFromUser({participant:{className:type},bot:true}),'Admin · Bot');
+  }
+  assert.equal(roleFromUser({participant:{className:'ChannelParticipant'},bot:true}),'Bot');
+  assert.equal(roleFromUser({participant:{className:'ChatParticipant'},bot:false}),'');
+  assert.equal(roleFromUser({bot:false}),'');
+  assert.equal(personFromUser({id:'123',username:'un_usuari'}).username,'un_usuari');
 });
